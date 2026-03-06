@@ -1,0 +1,152 @@
+<!doctype html>
+<html>
+  <head>
+    <style>
+      main {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+    </style>
+  </head>
+
+  <body>
+    <main>
+      <h1>Canvas</h1>
+
+      <canvas
+        id="canvas"
+        width="600"
+        height="400"
+        style="border: 1px solid black"
+      ></canvas>
+
+      <br />
+
+      <div>
+        <button onclick="tool = 'draw'">Free Draw</button>
+        <button onclick="tool = 'line'">Line</button>
+        <button onclick="tool = 'circle'">Circle</button>
+        <button onclick="tool = 'rect'">Rectangle</button>
+        <button onclick="clearCanvas()">Clear</button>
+      </div>
+    </main>
+
+    <script>
+      // getElementById("canvas")
+      // selects the canvas element from the HTML
+      let canvas = document.getElementById("canvas");
+
+      // getContext("2d")
+      // creates a 2D drawing environment used to draw shapes on canvas
+      let ctx = canvas.getContext("2d");
+
+      let drawing = false;
+      let startX, startY;
+      let tool = "draw";
+
+      // this will store a snapshot of the canvas for preview drawing
+      let snapshot;
+
+      // clearRect(x,y,width,height)
+      // clears a rectangular area of the canvas
+      // here we clear the entire canvas
+      function clearCanvas() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+
+      // mousedown → starts drawing
+      canvas.addEventListener("mousedown", (e) => {
+        drawing = true;
+
+        // offsetX / offsetY
+        // mouse position inside the canvas
+        startX = e.offsetX;
+        startY = e.offsetY;
+
+        // getImageData(x,y,width,height)
+        // takes a snapshot of the canvas pixels
+        snapshot = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+        if (tool === "draw") {
+          // beginPath()
+          // starts a new drawing path
+          ctx.beginPath();
+
+          // moveTo(x,y)
+          // moves the drawing cursor to a position without drawing
+          ctx.moveTo(startX, startY);
+        }
+      });
+
+      // mousemove → drawing preview or free draw
+      canvas.addEventListener("mousemove", (e) => {
+        if (!drawing) return;
+
+        let currentX = e.offsetX;
+        let currentY = e.offsetY;
+
+        // restore previous canvas before drawing preview
+        ctx.putImageData(snapshot, 0, 0);
+
+        if (tool === "draw") {
+          // lineTo(x,y)
+          // draws a line from the current cursor position
+          // to the new coordinates
+          ctx.lineTo(currentX, currentY);
+
+          // stroke()
+          // renders the path so it becomes visible
+          ctx.stroke();
+        }
+
+        if (tool === "line") {
+          ctx.beginPath();
+
+          ctx.moveTo(startX, startY);
+
+          ctx.lineTo(currentX, currentY);
+
+          ctx.stroke();
+        }
+
+        if (tool === "rect") {
+          let width = currentX - startX;
+          let height = currentY - startY;
+
+          // strokeRect(x,y,width,height)
+          // draws a rectangle outline
+          ctx.strokeRect(startX, startY, width, height);
+        }
+
+        if (tool === "circle") {
+          let centerX = (startX + currentX) / 2;
+          let centerY = (startY + currentY) / 2;
+
+          let dx = currentX - startX;
+          let dy = currentY - startY;
+
+
+          // Math.sqrt()
+          // returns the square root
+          // used here to calculate distance between two points
+          let radius = Math.sqrt(dx * dx + dy * dy) / 2;
+
+          ctx.beginPath();
+
+          // arc(x,y,radius,startAngle,endAngle)
+          // draws a circle or arc
+          // startAngle=0 and endAngle=Math.PI*2 draws a full circle
+          ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+
+          ctx.stroke();
+        }
+      });
+
+      // mouseup → stop drawing
+      canvas.addEventListener("mouseup", () => {
+        drawing = false;
+      });
+    </script>
+  </body>
+</html>
